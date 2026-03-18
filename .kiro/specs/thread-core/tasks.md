@@ -27,7 +27,7 @@
     - `popEvents`（带 filter 动态拼接）、`hasUnconsumedEvents`
     - `getEventCount`、`getThreadInfo`
     - _需求：2.1、2.7、3.1、3.4、4.2、5.1、5.5、6.1_
-  - [ ]* 2.3 为 db 层编写单元测试（`vitest/unit/db-init.test.ts`、`vitest/unit/db-queries.test.ts`）
+  - [x]* 2.3 为 db 层编写单元测试（`vitest/unit/db-init.test.ts`、`vitest/unit/db-queries.test.ts`）
     - 测试 schema 创建、WAL 模式、重复初始化检测
     - 测试各 SQL 操作的正确性和边界值（id=0、空结果集、null filter）
     - _需求：1.4、3.7、3.8_
@@ -51,12 +51,12 @@
     - 定义 `MAIN_EXAMPLES`（各子命令用法示例）和 `MAIN_VERBOSE`（退出码说明）
     - 导出 `installHelp(program: Command): void`，支持 `--verbose` 与 `--help` 联用
     - _需求：7（退出码文档）_
-  - [ ]* 3.5 为支撑模块编写单元测试
+  - [x]* 3.5 为支撑模块编写单元测试
     - `vitest/unit/event-log.test.ts`：追加、轮换触发条件
     - `vitest/unit/notifier-client.test.ts`：slug 生成算法（各种路径格式、超长路径）
     - `vitest/unit/logger.test.ts`：日志格式、轮换逻辑
     - _需求：8.1、10.1、10.2、10.3_
-  - [ ]* 3.6 为 slug 生成编写属性测试（`vitest/pbt/slug.pbt.ts`）
+  - [x]* 3.6 为 slug 生成编写属性测试（`vitest/pbt/slug.pbt.ts`）
     - **属性 7：thread_path_slug 长度约束**
     - 对任意路径字符串，生成的 slug 长度 ≤ 40 且仅含字母数字和连字符
     - `// Feature: thread-core, Property 7: thread_path_slug 长度约束`
@@ -68,7 +68,7 @@
   - 创建空 `events.jsonl`
   - 检测已存在有效 thread 目录时报错退出（退出码 1）
   - _需求：1.1、1.2、1.3、1.4、1.5_
-  - [ ]* 4.1 为 init 命令编写单元测试（`vitest/unit/commands/init.test.ts`）
+  - [x]* 4.1 为 init 命令编写单元测试（`vitest/unit/commands/init.test.ts`）
     - 测试新目录初始化、已存在非 thread 目录初始化、已存在 thread 目录报错
     - _需求：1.1、1.2、1.3_
 
@@ -78,15 +78,15 @@
   - 检查 JSONL 行数并在必要时轮换
   - 记录 push 成功日志
   - _需求：2.1、2.2、2.3、2.4、2.5、2.6、2.7、2.8、2.9、2.10_
-  - [ ]* 5.1 为 push 命令编写单元测试（`vitest/unit/commands/push.test.ts`）
+  - [x]* 5.1 为 push 命令编写单元测试（`vitest/unit/commands/push.test.ts`）
     - 测试单条 push、batch push、notifier 退出码 1 处理、无效 thread 目录报错
     - _需求：2.1、2.6、2.9_
-  - [ ]* 5.2 为 push-pop 编写属性测试（`vitest/pbt/push-pop.pbt.ts`）
+  - [x]* 5.2 为 push-pop 编写属性测试（`vitest/pbt/push-pop.pbt.ts`）
     - **属性 1：push 后事件可查询（Round Trip）**
     - 对任意合法 PushPayload，push 后 pop 应能取回字段完全一致的事件
     - `// Feature: thread-core, Property 1: push 后事件可查询`
     - _需求：2.1、2.2、2.3、2.4_
-  - [ ]* 5.3 为 batch push 编写属性测试（`vitest/pbt/batch-push.pbt.ts`）
+  - [x]* 5.3 为 batch push 编写属性测试（`vitest/pbt/batch-push.pbt.ts`）
     - **属性 2：batch push 原子性**
     - 对任意 N 条 payload 的 batch，push 后事件总数恰好增加 N；模拟失败时全部回滚
     - `// Feature: thread-core, Property 2: batch push 原子性`
@@ -107,7 +107,7 @@
 
     - 测试正常订阅、重复订阅报错、正常注销、注销不存在的 consumer 报错
     - _需求：5.1、5.4、5.5、5.6_
-  - [ ]* 7.4 为 subscribe/unsubscribe 编写属性测试（`vitest/pbt/subscribe.pbt.ts`）
+  - [x]* 7.4 为 subscribe/unsubscribe 编写属性测试（`vitest/pbt/subscribe.pbt.ts`）
     - **属性 5：subscribe 后可查询（Round Trip）**
     - **属性 6：unsubscribe 后不可查询（Round Trip）**
     - 对任意合法 Subscription，subscribe 后 getSubscription 应返回相同记录；unsubscribe 后返回 null
@@ -121,10 +121,10 @@
   - 执行带 filter 的事件查询
   - 输出 NDJSON 到 stdout
   - _需求：3.1、3.2、3.3、3.4、3.5、3.6、3.7、3.8_
-  - [ ]* 8.1 为 pop 命令编写单元测试（`vitest/unit/commands/pop.test.ts`）
+  - [x]* 8.1 为 pop 命令编写单元测试（`vitest/unit/commands/pop.test.ts`）
     - 测试正常消费、空结果、consumer 不存在报错、filter 过滤、last-event-id=0 从头消费
     - _需求：3.2、3.6、3.7、3.8_
-  - [ ]* 8.2 为 pop filter 编写属性测试（`vitest/pbt/pop-filter.pbt.ts`）
+  - [x]* 8.2 为 pop filter 编写属性测试（`vitest/pbt/pop-filter.pbt.ts`）
     - **属性 3：pop 过滤正确性**
     - 对任意 consumer（含非空 filter）和 last-event-id，pop 返回的事件均满足 id > last-event-id 且符合 filter
     - `// Feature: thread-core, Property 3: pop 过滤正确性`
@@ -139,7 +139,7 @@
   - 加锁失败则跳过并记录日志
   - 记录调度详情到日志
   - _需求：4.1、4.2、4.3、4.4、4.5、4.6、4.7_
-  - [ ]* 9.1 为 dispatch 命令编写单元测试（`vitest/unit/commands/dispatch.test.ts`）
+  - [x]* 9.1 为 dispatch 命令编写单元测试（`vitest/unit/commands/dispatch.test.ts`）
     - 测试无订阅时正常退出、有未消费事件时 spawn handler、锁已持有时跳过
     - _需求：4.3、4.5、4.6_
 
@@ -147,7 +147,7 @@
   - 调用 `getThreadInfo` 获取事件总数、订阅列表、消费进度
   - 默认文本输出，`--json` 时输出 JSON
   - _需求：6.1、6.2、6.3_
-  - [ ]* 10.1 为 info 命令编写单元测试（`vitest/unit/commands/info.test.ts`）
+  - [x]* 10.1 为 info 命令编写单元测试（`vitest/unit/commands/info.test.ts`）
     - 测试文本输出格式、JSON 输出格式、无效 thread 目录报错
     - _需求：6.1、6.2、6.3_
 

@@ -68,7 +68,6 @@ Examples:
 
           if (payloads.length === 0) {
             db.close();
-            await logger.close();
             return;
           }
 
