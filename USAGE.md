@@ -96,6 +96,38 @@ thread pop --thread /tmp/my-thread --consumer worker-1 --last-event-id 42
 
 无新事件时输出为空（无任何行）。
 
+### `thread peek`
+
+只读查询事件（不更新消费进度）。适用于 agent 构建 LLM context 时从 thread 读取最近消息等"读取但不消费"的场景。
+
+```bash
+thread peek \
+  --thread <path> \
+  --last-event-id <id> \
+  [--limit <n>] \
+  [--filter <sql-where>]
+```
+
+- `--last-event-id`：返回 id > 此值的事件；传 `0` 从头读取
+- `--limit`：默认 100
+- `--filter`：可选的 SQL WHERE 子句片段
+- 不需要 `--consumer`，不更新 `consumer_progress`，不要求在 `subscriptions` 中注册
+
+示例：
+
+```bash
+# 读取所有事件
+thread peek --thread /tmp/my-thread --last-event-id 0
+
+# 只读取 message 类型
+thread peek --thread /tmp/my-thread --last-event-id 0 --filter "type = 'message'"
+
+# 从 id=42 之后读取最多 10 条
+thread peek --thread /tmp/my-thread --last-event-id 42 --limit 10
+```
+
+与 `pop` 的区别：`peek` 是纯只读查询，不需要 consumer 注册，不更新消费进度。
+
 ---
 
 ## 订阅管理

@@ -7,6 +7,7 @@ Examples:
   $ thread push --thread ./my-thread --source agent-007 --type record --batch < events.jsonl
   $ thread subscribe --thread ./my-thread --consumer worker-1 --handler "pai chat --thread ./my-thread --consumer worker-1"
   $ thread pop --thread ./my-thread --consumer worker-1 --last-event-id 0
+  $ thread peek --thread ./my-thread --last-event-id 0 --filter "type = 'message'"
   $ thread dispatch --thread ./my-thread
   $ thread info --thread ./my-thread --json`;
 
