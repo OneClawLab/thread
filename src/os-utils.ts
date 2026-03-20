@@ -152,6 +152,3 @@ export function spawnCommand(
     }
   });
 }
-
-// Re-export BASE_SPAWN_OPTIONS for use in dispatch (detached spawn)
-export { BASE_SPAWN_OPTIONS };
