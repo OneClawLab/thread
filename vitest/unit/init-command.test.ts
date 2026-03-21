@@ -123,7 +123,7 @@ describe('thread init — already a valid thread directory (has events.db)', () 
     // Pre-create events.db to mark it as a valid thread dir
     fs.writeFileSync(path.join(target, 'events.db'), '');
 
-    const exitSpy = vi.spyOn(process, 'exit').mockImplementation((_code?: number) => {
+    const exitSpy = vi.spyOn(process, 'exit').mockImplementation((_code?: number | string | null) => {
       throw new Error(`process.exit(${_code})`);
     });
 

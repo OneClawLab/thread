@@ -4,7 +4,7 @@ import * as path from 'node:path';
 import { spawn } from 'node:child_process';
 import { openDb } from '../db/init.js';
 import { getSubscriptions, getConsumerProgress, hasUnconsumedEvents } from '../db/queries.js';
-import { createFileLogger } from '../logger.js';
+import { createFileLogger } from '../repo-utils/logger.js';
 
 function assertValidThreadDir(threadDir: string): void {
   if (!fs.existsSync(path.join(threadDir, 'events.db'))) {
@@ -47,7 +47,7 @@ Examples:
       const threadDir = path.resolve(options.thread);
       assertValidThreadDir(threadDir);
 
-      const logger = await createFileLogger(threadDir);
+      const logger = await createFileLogger(path.join(threadDir, 'logs'), 'thread');
       const db = openDb(threadDir);
 
       try {

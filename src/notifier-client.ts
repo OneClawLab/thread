@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import type { Logger } from './logger.js';
+import type { Logger } from './repo-utils/logger.js';
 
 const execFileAsync = promisify(execFile);
 const IS_WIN32 = process.platform === 'win32';

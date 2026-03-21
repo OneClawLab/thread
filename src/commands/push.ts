@@ -6,7 +6,7 @@ import { openDb } from '../db/init.js';
 import { insertEvent, insertEventsBatch } from '../db/queries.js';
 import { appendEventLog, appendEventsBatch, rotateIfNeeded } from '../event-log.js';
 import { scheduleDispatch } from '../notifier-client.js';
-import { createFileLogger } from '../logger.js';
+import { createFileLogger } from '../repo-utils/logger.js';
 import type { PushPayload, Event } from '../types.js';
 
 function assertValidThreadDir(threadDir: string): void {
@@ -46,7 +46,7 @@ Examples:
       const threadDir = path.resolve(options.thread);
       assertValidThreadDir(threadDir);
 
-      const logger = await createFileLogger(threadDir);
+      const logger = await createFileLogger(path.join(threadDir, 'logs'), 'thread');
       const db = openDb(threadDir);
 
       try {
