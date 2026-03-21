@@ -12,6 +12,14 @@ A Linux CLI tool for managing persistent event queues backed by SQLite, with con
 
 ## Install
 
+### From npm
+
+```bash
+npm install -g @theclawlab/thread
+```
+
+### From source
+
 ```bash
 npm run build && npm link
 ```

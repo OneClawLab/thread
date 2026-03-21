@@ -1,17 +1,29 @@
 {
-  "name": "thread",
+  "name": "@theclawlab/thread",
   "type": "module",
-  "version": "1.0.0",
+  "version": "1.0.3",
   "description": "thread is a CLI tool for managing event queues backed by SQLite.",
   "bin": {
-    "thread": "./dist/index.js"
+    "thread": "dist/index.js"
   },
   "scripts": {
     "build": "tsup",
     "test": "vitest",
     "test:run": "vitest run",
-    "release:local": "npm run build && npm link"
+    "release:local": "npm run build && npm link",
+    "release:public": "npm test && npm run build && npm publish --access public",
+    "release:public:skip-test": "npm run build && npm publish --access public"
   },
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "USAGE.md"
+  ],
   "dependencies": {
     "better-sqlite3": "^11.8.1",
     "commander": "^14.0.3"
