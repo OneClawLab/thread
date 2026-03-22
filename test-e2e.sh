@@ -91,17 +91,12 @@ section "9. pop"
 run_cmd $THREAD pop --thread "$T" --consumer worker-1 --last-event-id 0
 assert_exit0
 assert_line_count_gte 2
-POP_OUT="$OUT"
 
 # ══════════════════════════════════════════════════════════════
 # 10. pop — no new events returns empty
 # ══════════════════════════════════════════════════════════════
 section "10. pop — no new events"
-MAX_ID=$(node -e "
-const lines = require('fs').readFileSync(process.argv[1],'utf8').trim().split('\n').filter(Boolean);
-const ids = lines.map(l => JSON.parse(l).id).filter(Number.isFinite);
-process.stdout.write(String(Math.max(...ids)));
-" "$POP_OUT" 2>/dev/null)
+MAX_ID=$(tail -1 "$OUT" | grep -o '"id":[0-9]*' | grep -o '[0-9]*')
 run_cmd $THREAD pop --thread "$T" --consumer worker-1 --last-event-id "$MAX_ID"
 assert_exit0
 assert_empty
@@ -139,5 +134,60 @@ EC=$?
 assert_exit0
 run_cmd $THREAD peek --thread "$T" --last-event-id 0 --filter "type = 'message'"
 assert_line_count_gte 3
+
+# ══════════════════════════════════════════════════════════════
+# 15. multiple consumers — independent read pointers
+# ══════════════════════════════════════════════════════════════
+section "15. multiple consumers — independent read pointers"
+
+T2="$TD/multi-consumer-thread"
+run_cmd $THREAD init "$T2"
+assert_exit0
+
+# Push 3 events
+run_cmd $THREAD push --thread "$T2" --source e2e --type message --content "event-A"
+assert_exit0
+run_cmd $THREAD push --thread "$T2" --source e2e --type message --content "event-B"
+assert_exit0
+run_cmd $THREAD push --thread "$T2" --source e2e --type message --content "event-C"
+assert_exit0
+
+# Subscribe two consumers
+run_cmd $THREAD subscribe --thread "$T2" --consumer alpha --handler "true"
+assert_exit0
+run_cmd $THREAD subscribe --thread "$T2" --consumer beta --handler "true"
+assert_exit0
+
+# Both consumers start from 0 — should each see all 3 events
+run_cmd $THREAD pop --thread "$T2" --consumer alpha --last-event-id 0
+assert_exit0
+assert_line_count_eq 3
+ALPHA_OUT="$OUT"
+
+run_cmd $THREAD pop --thread "$T2" --consumer beta --last-event-id 0
+assert_exit0
+assert_line_count_eq 3
+
+# Extract id of 2nd event (alpha advances past first 2)
+ALPHA_MAX_ID=$(head -2 "$ALPHA_OUT" | tail -1 | grep -o '"id":[0-9]*' | grep -o '[0-9]*')
+
+# alpha advances past first 2 events; beta stays at 0
+# alpha should now see only event-C (1 event)
+run_cmd $THREAD pop --thread "$T2" --consumer alpha --last-event-id "$ALPHA_MAX_ID"
+assert_exit0
+assert_line_count_eq 1
+assert_contains "event-C"
+
+# beta still sees all 3 (hasn't advanced its pointer)
+run_cmd $THREAD pop --thread "$T2" --consumer beta --last-event-id 0
+assert_exit0
+assert_line_count_eq 3
+
+# Advance beta past all events
+BETA_MAX_ID=$(tail -1 "$OUT" | grep -o '"id":[0-9]*' | grep -o '[0-9]*')
+
+run_cmd $THREAD pop --thread "$T2" --consumer beta --last-event-id "$BETA_MAX_ID"
+assert_exit0
+assert_empty
 
 summary_and_exit
