@@ -1,12 +1,12 @@
 import Database from 'better-sqlite3';
-import { join } from 'node:path';
+import { path } from '../repo-utils/path.js';
 
 /**
  * Open (or create) the SQLite database at <threadDir>/events.db.
  * Enables WAL mode for concurrent read/write performance.
  */
 export function openDb(threadDir: string): Database.Database {
-  const dbPath = join(threadDir, 'events.db');
+  const dbPath = path.toNative(path.join(threadDir, 'events.db'));
   const db = new Database(dbPath);
   db.pragma('journal_mode = WAL');
   return db;

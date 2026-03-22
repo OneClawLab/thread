@@ -1,5 +1,5 @@
-import * as fs from 'node:fs';
-import * as path from 'node:path';
+import { readFileSync, renameSync, writeFileSync, appendFileSync } from './repo-utils/fs.js';
+import { path } from './repo-utils/path.js';
 import type { Event } from './types.js';
 
 const JSONL_MAX_LINES = 10000;
@@ -17,7 +17,7 @@ function formatRotationTimestamp(date: Date): string {
 
 function countLines(filePath: string): number {
   try {
-    const content = fs.readFileSync(filePath, 'utf8');
+    const content = readFileSync(filePath, 'utf8');
     if (content.length === 0) return 0;
     const lines = content.split('\n');
     return lines[lines.length - 1] === '' ? lines.length - 1 : lines.length;
@@ -37,8 +37,8 @@ export function rotateIfNeeded(threadDir: string): void {
   if (lineCount > JSONL_MAX_LINES) {
     const ts = formatRotationTimestamp(new Date());
     const rotatedPath = path.join(threadDir, `events-${ts}.jsonl`);
-    fs.renameSync(jsonlPath, rotatedPath);
-    fs.writeFileSync(jsonlPath, '', 'utf8');
+    renameSync(jsonlPath, rotatedPath);
+    writeFileSync(jsonlPath, '', 'utf8');
   }
 }
 
@@ -49,7 +49,7 @@ export function rotateIfNeeded(threadDir: string): void {
 export function appendEventLog(threadDir: string, event: Event): void {
   rotateIfNeeded(threadDir);
   const jsonlPath = path.join(threadDir, 'events.jsonl');
-  fs.appendFileSync(jsonlPath, JSON.stringify(event) + '\n', 'utf8');
+  appendFileSync(jsonlPath, JSON.stringify(event) + '\n', 'utf8');
 }
 
 /**
@@ -61,5 +61,5 @@ export function appendEventsBatch(threadDir: string, events: Event[]): void {
   rotateIfNeeded(threadDir);
   const jsonlPath = path.join(threadDir, 'events.jsonl');
   const lines = events.map((e) => JSON.stringify(e)).join('\n') + '\n';
-  fs.appendFileSync(jsonlPath, lines, 'utf8');
+  appendFileSync(jsonlPath, lines, 'utf8');
 }

@@ -1,13 +1,13 @@
 import type { Command } from 'commander';
-import * as fs from 'node:fs';
 import { spawn } from 'node:child_process';
+import { existsSync, mkdirSync, openSync, writeSync, closeSync, constants } from '../repo-utils/fs.js';
 import { path } from '../repo-utils/path.js';
 import { openDb } from '../db/init.js';
 import { getSubscriptions, getConsumerProgress, hasUnconsumedEvents } from '../db/queries.js';
 import { createFileLogger } from '../repo-utils/logger.js';
 
 function assertValidThreadDir(threadDir: string): void {
-  if (!fs.existsSync(path.join(threadDir, 'events.db'))) {
+  if (!existsSync(path.join(threadDir, 'events.db'))) {
     process.stderr.write(
       `Error: ${threadDir} 不是有效的 thread 目录 - 请先运行 thread init ${threadDir}\n`
     );
@@ -21,9 +21,9 @@ function assertValidThreadDir(threadDir: string): void {
  */
 function tryLock(lockPath: string): boolean {
   try {
-    const fd = fs.openSync(lockPath, fs.constants.O_CREAT | fs.constants.O_EXCL | fs.constants.O_WRONLY);
-    fs.writeSync(fd, String(process.pid));
-    fs.closeSync(fd);
+    const fd = openSync(lockPath, constants.O_CREAT | constants.O_EXCL | constants.O_WRONLY);
+    writeSync(fd, String(process.pid));
+    closeSync(fd);
     return true;
   } catch (err: unknown) {
     if ((err as NodeJS.ErrnoException).code === 'EEXIST') return false;
@@ -64,7 +64,7 @@ Examples:
 
           // Try to acquire lock
           const runDir = path.join(threadDir, 'run');
-          fs.mkdirSync(runDir, { recursive: true });
+          mkdirSync(runDir, { recursive: true });
           const lockPath = path.join(runDir, `${sub.consumer_id}.lock`);
 
           if (!tryLock(lockPath)) {

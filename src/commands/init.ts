@@ -1,10 +1,10 @@
 import type { Command } from 'commander';
-import * as fs from 'node:fs';
-import { openDb, initSchema } from '../db/init.js';
 import { path } from '../repo-utils/path.js';
+import { existsSync, mkdirSync, writeFileSync } from '../repo-utils/fs.js';
+import { openDb, initSchema } from '../db/init.js';
 
 function isValidThreadDir(dirPath: string): boolean {
-  return fs.existsSync(path.join(dirPath, 'events.db'));
+  return existsSync(path.join(dirPath, 'events.db'));
 }
 
 export function register(program: Command): void {
@@ -28,8 +28,8 @@ Examples:
       }
 
       // Create directory structure
-      fs.mkdirSync(path.join(resolved, 'run'), { recursive: true });
-      fs.mkdirSync(path.join(resolved, 'logs'), { recursive: true });
+      mkdirSync(path.join(resolved, 'run'), { recursive: true });
+      mkdirSync(path.join(resolved, 'logs'), { recursive: true });
 
       // Initialize SQLite database
       const db = openDb(resolved);
@@ -38,8 +38,8 @@ Examples:
 
       // Create empty events.jsonl
       const jsonlPath = path.join(resolved, 'events.jsonl');
-      if (!fs.existsSync(jsonlPath)) {
-        fs.writeFileSync(jsonlPath, '', 'utf8');
+      if (!existsSync(jsonlPath)) {
+        writeFileSync(jsonlPath, '', 'utf8');
       }
 
       process.stdout.write(`Initialized thread at ${resolved}\n`);

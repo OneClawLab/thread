@@ -1,11 +1,11 @@
 import type { Command } from 'commander';
-import * as fs from 'node:fs';
+import { existsSync } from '../repo-utils/fs.js';
 import { openDb } from '../db/init.js';
 import { popEvents } from '../db/queries.js';
 import { path } from '../repo-utils/path.js';
 
 function assertValidThreadDir(threadDir: string): void {
-  if (!fs.existsSync(path.join(threadDir, 'events.db'))) {
+  if (!existsSync(path.join(threadDir, 'events.db'))) {
     process.stderr.write(
       `Error: ${threadDir} 不是有效的 thread 目录 - 请先运行 thread init ${threadDir}\n`
     );
