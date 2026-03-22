@@ -1,6 +1,6 @@
 import type { Command } from 'commander';
 import * as fs from 'node:fs';
-import * as path from 'node:path';
+import { path } from '../repo-utils/path.js';
 import { openDb } from '../db/init.js';
 import { getSubscription, insertSubscription } from '../db/queries.js';
 

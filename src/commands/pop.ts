@@ -1,8 +1,8 @@
 import type { Command } from 'commander';
 import * as fs from 'node:fs';
-import * as path from 'node:path';
 import { openDb } from '../db/init.js';
 import { getSubscription, upsertConsumerProgress, popEvents } from '../db/queries.js';
+import { path } from '../repo-utils/path.js';
 
 function assertValidThreadDir(threadDir: string): void {
   if (!fs.existsSync(path.join(threadDir, 'events.db'))) {

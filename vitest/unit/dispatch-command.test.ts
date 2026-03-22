@@ -4,11 +4,11 @@
  */
 import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest';
 import * as fs from 'node:fs';
-import * as path from 'node:path';
 import { Command } from 'commander';
 import { createTestThread } from '../helpers/thread-helpers.js';
 import type { TestThread } from '../helpers/thread-helpers.js';
 import { insertSubscription, insertEvent } from '../../src/db/queries.js';
+import { path } from '../../src/repo-utils/path.js';
 
 // Mock child_process at the top level so ESM module namespace is interceptable
 vi.mock('node:child_process', async (importOriginal) => {

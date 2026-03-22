@@ -1,7 +1,7 @@
 import type { Command } from 'commander';
 import * as fs from 'node:fs';
-import * as path from 'node:path';
 import { openDb, initSchema } from '../db/init.js';
+import { path } from '../repo-utils/path.js';
 
 function isValidThreadDir(dirPath: string): boolean {
   return fs.existsSync(path.join(dirPath, 'events.db'));

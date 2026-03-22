@@ -1,12 +1,12 @@
 import type { Command } from 'commander';
 import * as fs from 'node:fs';
-import * as path from 'node:path';
 import * as readline from 'node:readline';
 import { openDb } from '../db/init.js';
 import { insertEvent, insertEventsBatch } from '../db/queries.js';
 import { appendEventLog, appendEventsBatch, rotateIfNeeded } from '../event-log.js';
 import { scheduleDispatch } from '../notifier-client.js';
 import { createFileLogger } from '../repo-utils/logger.js';
+import { path } from '../repo-utils/path.js';
 import type { PushPayload, Event } from '../types.js';
 
 function assertValidThreadDir(threadDir: string): void {
