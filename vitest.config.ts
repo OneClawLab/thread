@@ -7,7 +7,7 @@ export default defineConfig({
     watch: false,
     testTimeout: 10000,
     fileParallelism: false,
-    include: ['**/*.{test,spec,pbt}.?(c|m)[jt]s?(x)'],
+    include: ['vitest/**/*.test.ts'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
@@ -15,7 +15,6 @@ export default defineConfig({
         'node_modules/',
         'dist/',
         '**/*.test.ts',
-        '**/*.pbt.ts',
         '**/*.config.ts',
       ],
     },
