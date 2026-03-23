@@ -3,14 +3,13 @@
  * Validates: Requirements 2.1, 2.6, 2.9
  */
 import { describe, it, expect, afterEach, vi, beforeEach } from 'vitest';
-import * as fs from 'node:fs';
-import * as path from 'node:path';
+import * as fs from '../../src/repo-utils/fs.js';
+import { path } from '../../src/repo-utils/path.js';
 import { Command } from 'commander';
 import { register } from '../../src/commands/push.js';
 import { createTestThread } from '../helpers/thread-helpers.js';
 import type { TestThread } from '../helpers/thread-helpers.js';
-import { openDb } from '../../src/db/init.js';
-import { Readable, PassThrough } from 'node:stream';
+import { PassThrough } from 'node:stream';
 
 // Mock scheduleDispatch so tests don't need the notifier CLI
 vi.mock('../../src/notifier-client.js', () => ({

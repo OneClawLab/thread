@@ -3,7 +3,8 @@
  * Validates: Requirements 4.3, 4.5, 4.6
  */
 import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest';
-import * as fs from 'node:fs';
+import * as nodeFs from 'node:fs';
+import * as fs from '../../src/repo-utils/fs.js';
 import { Command } from 'commander';
 import { createTestThread } from '../helpers/thread-helpers.js';
 import type { TestThread } from '../helpers/thread-helpers.js';

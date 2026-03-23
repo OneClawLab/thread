@@ -1,9 +1,10 @@
 import { describe, it, expect, afterEach, vi } from 'vitest';
-import * as fs from 'node:fs';
+import * as nodeFs from 'node:fs';
 import * as os from 'node:os';
 import { Command } from 'commander';
 import { register } from '../../src/commands/init.js';
 import { path } from '../../src/repo-utils/path.js';
+import * as fs from '../../src/repo-utils/fs.js';
 
 // Helper: create a fresh commander program with init registered
 function makeProgram(): Command {
@@ -22,7 +23,7 @@ function runInit(args: string[]): void {
 const tmpDirs: string[] = [];
 
 function makeTmpDir(): string {
-  const dir = path.resolve(fs.mkdtempSync(path.join(path.resolve(os.tmpdir()), 'thread-init-cmd-test-')));
+  const dir = fs.mkdtempSync(path.join(path.toPosixPath(os.tmpdir()), 'thread-init-cmd-test-'));
   tmpDirs.push(dir);
   return dir;
 }
@@ -31,7 +32,7 @@ afterEach(() => {
   vi.restoreAllMocks();
   while (tmpDirs.length > 0) {
     const dir = tmpDirs.pop()!;
-    fs.rmSync(dir, { recursive: true, force: true });
+    nodeFs.rmSync(path.toNative(dir), { recursive: true, force: true });
   }
 });
 

@@ -4,7 +4,7 @@
  * Validates: Requirements 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8
  */
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import * as fs from 'node:fs';
+import * as fs from '../../src/repo-utils/fs.js';
 import { createTestThread, type TestThread } from '../helpers/thread-helpers.js';
 import { openDb, initSchema } from '../../src/db/init.js';
 import {

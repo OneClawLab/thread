@@ -1,10 +1,6 @@
 import { createHash } from 'node:crypto';
-import { execFile } from 'node:child_process';
-import { promisify } from 'node:util';
+import { execCommand } from './repo-utils/os.js';
 import type { Logger } from './repo-utils/logger.js';
-
-const execFileAsync = promisify(execFile);
-const IS_WIN32 = process.platform === 'win32';
 
 /**
  * Generate a notifier task-id slug from a thread directory path.
@@ -33,6 +29,8 @@ export async function scheduleDispatch(
   logger?: Logger
 ): Promise<void> {
   const taskId = buildTaskId(threadDir);
+  // notifier executor runs commands via `sh -c`, so keep POSIX-style paths
+  // (e.g. /c/Users/...) — do NOT convert to Windows paths here.
   const args = [
     'task', 'add',
     '--author', source,
@@ -41,21 +39,15 @@ export async function scheduleDispatch(
   ];
 
   try {
-    await execFileAsync('notifier', args, {
-      encoding: 'utf8',
-      timeout: 5000,
-      windowsHide: true,
-      shell: IS_WIN32,
-    });
+    await execCommand('notifier', args, 5000);
   } catch (err: unknown) {
-    // execFile rejects on non-zero exit; check if it's exit code 1 (task exists)
-    const exitCode = (err as { code?: number }).code;
-    if (exitCode === 1) {
+    // execCommand rejects on non-zero exit; check if it's exit code 1 (task exists)
+    const msg = err instanceof Error ? err.message : String(err);
+    if (msg.includes('exited with code 1')) {
       // Task already queued — this is expected and fine
       return;
     }
     // Any other error: log warning but don't propagate
-    const msg = err instanceof Error ? err.message : String(err);
     logger?.warn(`notifier dispatch schedule failed (non-fatal): ${msg}`);
   }
 }
