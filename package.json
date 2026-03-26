@@ -1,15 +1,19 @@
 {
   "name": "@theclawlab/thread",
   "type": "module",
-  "version": "1.0.9",
+  "version": "2.0.0",
   "description": "thread is a CLI tool for managing event queues backed by SQLite.",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "bin": {
-    "thread": "dist/index.js"
+    "thread": "./dist/cli.js"
   },
   "scripts": {
     "build": "tsup",
-    "test": "vitest",
-    "test:run": "vitest run",
+    "test": "vitest run",
     "release:local": "npm run build && npm link",
     "release:public": "npm test && npm run build && npm publish --access public",
     "release:public:skip-test": "npm run build && npm publish --access public"

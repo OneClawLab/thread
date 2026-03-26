@@ -1,13 +1,11 @@
 import type { Command } from 'commander';
 import * as readline from 'node:readline';
 import { existsSync } from '../repo-utils/fs.js';
-import { openDb } from '../db/init.js';
-import { insertEvent, insertEventsBatch } from '../db/queries.js';
-import { appendEventLog, appendEventsBatch, rotateIfNeeded } from '../event-log.js';
 import { scheduleDispatch } from '../notifier-client.js';
 import { createFileLogger } from '../repo-utils/logger.js';
 import { path } from '../repo-utils/path.js';
-import type { PushPayload, Event } from '../types.js';
+import { ThreadLib } from '../lib/thread-lib.js';
+import type { ThreadEventInput } from '../lib/types.js';
 
 function assertValidThreadDir(threadDir: string): void {
   if (!existsSync(path.join(threadDir, 'events.db'))) {
@@ -47,94 +45,74 @@ Examples:
       assertValidThreadDir(threadDir);
 
       const logger = await createFileLogger(path.join(threadDir, 'logs'), 'thread');
-      const db = openDb(threadDir);
+      const lib = new ThreadLib();
+      const store = await lib.open(threadDir);
 
       try {
         if (options.batch) {
           // Batch mode: read NDJSON from stdin
-          const payloads: PushPayload[] = [];
+          const payloads: ThreadEventInput[] = [];
           const rl = readline.createInterface({ input: process.stdin, crlfDelay: Infinity });
           for await (const line of rl) {
             const trimmed = line.trim();
             if (!trimmed) continue;
             const obj = JSON.parse(trimmed) as Record<string, unknown>;
-            payloads.push({
+            const input: ThreadEventInput = {
               source: String(obj['source'] ?? ''),
-              type: String(obj['type'] ?? ''),
-              subtype: obj['subtype'] != null ? String(obj['subtype']) : null,
+              type: String(obj['type'] ?? '') as 'message' | 'record',
               content: String(obj['content'] ?? ''),
-            });
+            };
+            if (obj['subtype'] != null) {
+              input.subtype = String(obj['subtype']);
+            }
+            payloads.push(input);
           }
 
           if (payloads.length === 0) {
-            db.close();
             return;
           }
 
-          const ids = insertEventsBatch(db, payloads);
-
-          // Build full event objects for JSONL
-          const events: Event[] = payloads.map((p, i) => ({
-            id: ids[i] as number,
-            created_at: new Date().toISOString(),
-            source: p.source,
-            type: p.type,
-            subtype: p.subtype ?? null,
-            content: p.content,
-          }));
-
-          rotateIfNeeded(threadDir);
-          appendEventsBatch(threadDir, events);
+          const events = await store.pushBatch(payloads);
 
           const lastPayload = payloads[payloads.length - 1];
           if (lastPayload) {
             await scheduleDispatch(threadDir, lastPayload.source, logger);
           }
-          logger.info(`push batch: count=${payloads.length} last_id=${ids[ids.length - 1]}`);
+          const lastEvent = events[events.length - 1];
+          logger.info(`push batch: count=${payloads.length} last_id=${lastEvent?.id}`);
         } else {
           // Single mode
           if (!options.source) {
             process.stderr.write('Error: --source 是必需参数 - 请提供事件来源标识\n');
-            db.close();
             await logger.close();
             process.exit(2);
           }
           if (!options.type) {
             process.stderr.write('Error: --type 是必需参数 - 请提供事件类型\n');
-            db.close();
             await logger.close();
             process.exit(2);
           }
           if (options.content === undefined) {
             process.stderr.write('Error: --content 是必需参数（单条模式）- 或使用 --batch 从 stdin 读取\n');
-            db.close();
             await logger.close();
             process.exit(2);
           }
 
-          const payload: PushPayload = {
+          const payload: ThreadEventInput = {
             source: options.source,
-            type: options.type,
-            subtype: options.subtype ?? null,
+            type: options.type as 'message' | 'record',
             content: options.content,
           };
+          if (options.subtype !== undefined) {
+            payload.subtype = options.subtype;
+          }
 
-          const id = insertEvent(db, payload);
-          const event: Event = {
-            id,
-            created_at: new Date().toISOString(),
-            source: payload.source,
-            type: payload.type,
-            subtype: payload.subtype ?? null,
-            content: payload.content,
-          };
-
-          appendEventLog(threadDir, event);
+          const event = await store.push(payload);
           await scheduleDispatch(threadDir, payload.source, logger);
-          logger.info(`push: source=${payload.source} type=${payload.type} id=${id}`);
+          logger.info(`push: source=${payload.source} type=${payload.type} id=${event.id}`);
         }
       } finally {
-        db.close();
+        store.close();
         await logger.close();
       }
     });

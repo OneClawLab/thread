@@ -2,12 +2,16 @@
  * Unit tests for `thread info` command
  * Validates: Requirements 6.1, 6.2, 6.3
  */
+import * as nodeFs from 'node:fs';
+import * as os from 'node:os';
 import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest';
 import { Command } from 'commander';
 import { register } from '../../src/commands/info.js';
 import { createTestThread } from '../helpers/thread-helpers.js';
 import type { TestThread } from '../helpers/thread-helpers.js';
 import { insertEvent, insertSubscription } from '../../src/db/queries.js';
+import { path } from '../../src/repo-utils/path.js';
+import * as fs from '../../src/repo-utils/fs.js';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -221,13 +225,24 @@ describe('thread info — JSON output (--json)', () => {
 // ─── Invalid thread directory (requirement 6.3) ──────────────────────────────
 
 describe('thread info — invalid thread directory', () => {
+  let emptyDir: string;
+
+  beforeEach(() => {
+    // Use a fresh temp dir that has NO events.db — guaranteed to be invalid
+    emptyDir = fs.mkdtempSync(path.join(path.toPosixPath(os.tmpdir()), 'thread-test-'));
+  });
+
+  afterEach(() => {
+    nodeFs.rmSync(path.toNative(emptyDir), { recursive: true, force: true });
+  });
+
   it('exits with code 1 for a non-thread directory', async () => {
     const exitSpy = vi.spyOn(process, 'exit').mockImplementation((_code?: string | number | null) => {
       throw new Error(`process.exit(${_code})`);
     });
 
     await expect(
-      runInfo(['--thread', '/tmp/definitely-not-a-thread-dir-xyz'])
+      runInfo(['--thread', emptyDir])
     ).rejects.toThrow('process.exit(1)');
 
     expect(exitSpy).toHaveBeenCalledWith(1);
@@ -237,7 +252,7 @@ describe('thread info — invalid thread directory', () => {
     vi.spyOn(process, 'exit').mockImplementation(() => { throw new Error('exit'); });
 
     try {
-      await runInfo(['--thread', '/tmp/definitely-not-a-thread-dir-xyz']);
+      await runInfo(['--thread', emptyDir]);
     } catch { /* expected */ }
 
     // stderr was captured inside runInfo; re-spy to capture it here
@@ -253,7 +268,7 @@ describe('thread info — invalid thread directory', () => {
 
     try {
       const program = makeProgram();
-      await program.parseAsync(['node', 'thread', 'info', '--thread', '/tmp/definitely-not-a-thread-dir-xyz']);
+      await program.parseAsync(['node', 'thread', 'info', '--thread', emptyDir]);
     } catch { /* expected */ }
 
     expect(stderrChunks.join('')).toContain('Error:');

@@ -1,17 +1,6 @@
 import type { Command } from 'commander';
-import { existsSync } from '../repo-utils/fs.js';
-import { openDb } from '../db/init.js';
-import { popEvents } from '../db/queries.js';
 import { path } from '../repo-utils/path.js';
-
-function assertValidThreadDir(threadDir: string): void {
-  if (!existsSync(path.join(threadDir, 'events.db'))) {
-    process.stderr.write(
-      `Error: ${threadDir} 不是有效的 thread 目录 - 请先运行 thread init ${threadDir}\n`
-    );
-    process.exit(1);
-  }
-}
+import { ThreadLib } from '../lib/thread-lib.js';
 
 interface PeekOptions {
   thread: string;
@@ -33,9 +22,8 @@ Examples:
   $ thread peek --thread ./t --last-event-id 0
   $ thread peek --thread ./t --last-event-id 42 --limit 10
   $ thread peek --thread ./t --last-event-id 0 --filter "type = 'message'"`)
-    .action((options: PeekOptions) => {
+    .action(async (options: PeekOptions) => {
       const threadDir = path.resolve(options.thread);
-      assertValidThreadDir(threadDir);
 
       const lastEventId = parseInt(options.lastEventId, 10);
       if (isNaN(lastEventId) || lastEventId < 0) {
@@ -49,14 +37,18 @@ Examples:
         process.exit(2);
       }
 
-      const db = openDb(threadDir);
+      const lib = new ThreadLib();
+      const store = await lib.open(threadDir);
       try {
-        const events = popEvents(db, lastEventId, options.filter ?? null, limit);
+        const peekOpts = options.filter !== undefined
+          ? { lastEventId, limit, filter: options.filter }
+          : { lastEventId, limit };
+        const events = await store.peek(peekOpts);
         for (const event of events) {
           process.stdout.write(JSON.stringify(event) + '\n');
         }
       } finally {
-        db.close();
+        store.close();
       }
     });
 }

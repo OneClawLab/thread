@@ -1,11 +1,7 @@
 import type { Command } from 'commander';
 import { path } from '../repo-utils/path.js';
-import { existsSync, mkdirSync, writeFileSync } from '../repo-utils/fs.js';
-import { openDb, initSchema } from '../db/init.js';
-
-function isValidThreadDir(dirPath: string): boolean {
-  return existsSync(path.join(dirPath, 'events.db'));
-}
+import { ThreadLib } from '../lib/thread-lib.js';
+import { ThreadError } from '../lib/types.js';
 
 export function register(program: Command): void {
   program
@@ -16,32 +12,22 @@ export function register(program: Command): void {
 Examples:
   $ thread init ./my-thread
   $ thread init /tmp/agent-thread`)
-    .action((targetPath: string) => {
+    .action(async (targetPath: string) => {
       const resolved = path.resolve(targetPath);
 
-      // Check if already a valid thread directory
-      if (isValidThreadDir(resolved)) {
-        process.stderr.write(
-          `Error: ${resolved} 已是有效的 thread 目录 - 如需重新初始化，请先删除该目录\n`
-        );
-        process.exit(1);
+      const lib = new ThreadLib();
+      try {
+        const store = await lib.init(resolved);
+        store.close();
+        process.stdout.write(`Initialized thread at ${resolved}\n`);
+      } catch (err) {
+        if (err instanceof ThreadError && err.code === 'THREAD_ALREADY_EXISTS') {
+          process.stderr.write(
+            `Error: ${resolved} 已是有效的 thread 目录 - 如需重新初始化，请先删除该目录\n`
+          );
+          process.exit(1);
+        }
+        throw err;
       }
-
-      // Create directory structure
-      mkdirSync(path.join(resolved, 'run'), { recursive: true });
-      mkdirSync(path.join(resolved, 'logs'), { recursive: true });
-
-      // Initialize SQLite database
-      const db = openDb(resolved);
-      initSchema(db);
-      db.close();
-
-      // Create empty events.jsonl
-      const jsonlPath = path.join(resolved, 'events.jsonl');
-      if (!existsSync(jsonlPath)) {
-        writeFileSync(jsonlPath, '', 'utf8');
-      }
-
-      process.stdout.write(`Initialized thread at ${resolved}\n`);
     });
 }

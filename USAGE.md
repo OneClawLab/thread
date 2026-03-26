@@ -1,5 +1,7 @@
 # USAGE: thread
 
+> **Note**: This document covers the CLI interface. For programmatic (LIB) usage in Node.js, see [README.md](./README.md#lib-api).
+
 ## 安装
 
 ```bash

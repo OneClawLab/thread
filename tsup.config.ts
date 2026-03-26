@@ -1,16 +1,24 @@
 import { defineConfig } from 'tsup';
 
-export default defineConfig({
-  entry: ['src/index.ts'],
-  target: 'node20',
-  format: ['esm'],
-  dts: true,
-  clean: true,
-  sourcemap: true,
-  minify: false,
-  splitting: false,
-  banner: {
-    js: '#!/usr/bin/env node',
+export default defineConfig([
+  {
+    // LIB entry: no shebang, generate type declarations
+    entry: ['src/index.ts'],
+    format: ['esm'],
+    target: 'node22',
+    clean: true,
+    sourcemap: true,
+    dts: true,
+    external: ['canvas', 'jsdom'],
   },
-  external: ['canvas', 'jsdom'],
-});
+  {
+    // CLI entry: with shebang, no type declarations
+    entry: ['src/cli.ts'],
+    format: ['esm'],
+    target: 'node22',
+    sourcemap: true,
+    dts: false,
+    banner: { js: '#!/usr/bin/env node' },
+    external: ['canvas', 'jsdom'],
+  },
+]);

@@ -170,18 +170,17 @@ describe('thread peek — read-only (no consumer_progress update)', () => {
   });
 });
 
-// ─── Invalid thread directory ────────────────────────────────────────────────
+// ─── Non-existent thread directory ───────────────────────────────────────────
 
-describe('thread peek — invalid thread directory', () => {
-  it('exits with code 1 for a non-thread directory', async () => {
-    const exitSpy = vi.spyOn(process, 'exit').mockImplementation((_code?: string | number | null) => {
-      throw new Error(`process.exit(${_code})`);
-    });
-
-    await expect(
-      runPeek(['--thread', '/tmp/definitely-not-a-thread-dir-xyz', '--last-event-id', '0'])
-    ).rejects.toThrow('process.exit(1)');
-
-    expect(exitSpy).toHaveBeenCalledWith(1);
+describe('thread peek — non-existent thread directory', () => {
+  it('auto-initializes and returns empty output for a non-existent directory', async () => {
+    const tmpDir = thread.dir + '-peek-nonexistent';
+    try {
+      const output = await runPeek(['--thread', tmpDir, '--last-event-id', '0']);
+      expect(output).toBe('');
+    } finally {
+      const { rm } = await import('../../src/repo-utils/fs.js');
+      await rm(tmpDir, { recursive: true, force: true });
+    }
   });
 });
