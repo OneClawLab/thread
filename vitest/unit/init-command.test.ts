@@ -1,4 +1,4 @@
-import { describe, it, expect, afterEach, vi } from 'vitest';
+import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest';
 import * as nodeFs from 'node:fs';
 import * as os from 'node:os';
 import { Command } from 'commander';
@@ -21,6 +21,8 @@ async function runInit(args: string[]): Promise<void> {
 }
 
 const tmpDirs: string[] = [];
+let stdoutSpy: ReturnType<typeof vi.spyOn>;
+let stderrSpy: ReturnType<typeof vi.spyOn>;
 
 function makeTmpDir(): string {
   const dir = fs.mkdtempSync(path.join(path.toPosixPath(os.tmpdir()), 'thread-init-cmd-test-'));
@@ -34,6 +36,11 @@ afterEach(() => {
     const dir = tmpDirs.pop()!;
     nodeFs.rmSync(path.toNative(dir), { recursive: true, force: true });
   }
+});
+
+beforeEach(() => {
+  stdoutSpy = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
+  stderrSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
 });
 
 describe('thread init — new directory', () => {
@@ -70,7 +77,6 @@ describe('thread init — new directory', () => {
   it('writes success message to stdout', async () => {
     const base = makeTmpDir();
     const target = path.join(base, 'new-thread');
-    const stdoutSpy = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
 
     await runInit([target]);
 
@@ -136,7 +142,6 @@ describe('thread init — already a valid thread directory (has events.db)', () 
     const target = makeTmpDir();
     fs.writeFileSync(path.join(target, 'events.db'), '');
 
-    const stderrSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
     vi.spyOn(process, 'exit').mockImplementation(() => { throw new Error('exit'); });
 
     await expect(runInit([target])).rejects.toThrow();

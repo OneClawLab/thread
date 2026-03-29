@@ -34,6 +34,7 @@ let thread: TestThread;
 
 beforeEach(() => {
   thread = createTestThread();
+  vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
 });
 
 afterEach(() => {
