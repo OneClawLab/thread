@@ -1,7 +1,7 @@
 {
   "name": "@theclawlab/thread",
   "type": "module",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "thread is a CLI tool for managing event queues backed by SQLite.",
   "exports": {
     ".": "./dist/index.js"
