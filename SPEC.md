@@ -4,28 +4,6 @@ A CLI/LIB module for managing event queues (Threads). It persists events and sub
 
 模块类型：**CLI/LIB**（见 [CLI-LIB-Module-Spec.md](../TheClaw/CLI-LIB-Module-Spec.md)）
 
-LIB 接口由 xar 的实际需求驱动（见 [xar SPECv2.md](../xar/SPECv2.md)），不是现有 CLI 的原样 lib 化。
-
-## 决策记录
-
-1. **Thread 目录即 Thread ID**：每个 thread 的全部数据存放在一个目录下，通过 `thread init <path>` 初始化（类似 `git init`），后续命令通过 `--thread <path>` 指定。路径经 `path.resolve()` 规范化后作为 thread id，天然唯一、无需注册。清理时直接删除目录即可，无需专用清理命令。
-2. **直接使用 SQLite**：不依赖 xdb 服务，使用 `better-sqlite3` 直接操作。每个 thread 目录下一个独立的 `events.db`，数据隔离。
-3. **双轨存储**：SQLite 作为查询/订阅状态的主存储；同时维护一份 `events.jsonl`（只追加），供人类调试浏览，无需 SQLite 客户端。
-4. **Event Structure**：见第 4 节。凡需要在订阅过滤/分发前判断的字段，统一提到 event 顶层结构中。
-5. **Batch 支持**：`push --batch` 从 stdin 读 NDJSON（每行一个 payload）；`pop --limit` 默认 100。
-6. **Filter 设计**：订阅时通过 `--filter` 指定 SQL WHERE 子句片段（施加在 `events` 表上）。filter 同时作用于 dispatch（决定是否触发 handler）和 pop（consumer 只拿到匹配的事件）。调用者均为内部命令，无用户输入注入风险。
-
-## 变更概要（v1 → v2）
-
-| 方面 | v1 | v2 |
-|------|----|----|
-| 模块类型 | CLI Only | CLI/LIB |
-| 入口文件 | `src/index.ts`（CLI） | `src/index.ts`（LIB）+ `src/cli.ts`（CLI） |
-| 事件写入 | 仅通过 CLI `thread push` | 可通过 LIB `ThreadStore.push()` 直接调用 |
-| 事件读取 | 仅通过 CLI `thread peek` | 可通过 LIB `ThreadStore.peek()` 直接调用 |
-| Thread 初始化 | 仅通过 CLI `thread init` | 可通过 LIB `ThreadLib.open()` 自动初始化 |
-| subscribe/dispatch/pop | CLI 完整支持 | CLI 保留；LIB 层**不暴露**（xar 不需要） |
-
 ## 1. Role
 
 - **Event Storage**: Persist events in SQLite + JSONL (dual-track).
